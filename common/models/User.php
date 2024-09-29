@@ -28,7 +28,20 @@ class User extends ActiveRecord implements IdentityInterface
     const STATUS_DELETED = 0;
     const STATUS_INACTIVE = 9;
     const STATUS_ACTIVE = 10;
+    const ROLE_GUEST = 0;
+    const ROLE_ADMIN = 1024;
+    const ROLE_USER = 1;
 
+    protected static $statusTitles = [
+        self::STATUS_DELETED  => 'Удален',
+        self::STATUS_INACTIVE => 'Не активирован',
+        self::STATUS_ACTIVE   => 'Активирован'
+    ];
+    protected static $rolesTitles = [
+        self::ROLE_GUEST => 'Гость',
+        self::ROLE_USER  => 'Пользователь',
+        self::ROLE_ADMIN => 'Админ'
+    ];
 
     /**
      * {@inheritdoc}
@@ -56,6 +69,8 @@ class User extends ActiveRecord implements IdentityInterface
         return [
             ['status', 'default', 'value' => self::STATUS_INACTIVE],
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_DELETED]],
+            ['role', 'default', 'value' => self::ROLE_USER],
+            ['role', 'in', 'range' => [self::ROLE_ADMIN, self::ROLE_USER, self::ROLE_GUEST]], // пока не смешиваем роли
         ];
     }
 
@@ -210,4 +225,71 @@ class User extends ActiveRecord implements IdentityInterface
     {
         $this->password_reset_token = null;
     }
+
+    /**
+     * @return array
+     */
+    public static function getAviableRoles($all = false)
+    {
+        if ($all) {
+            return [
+                null => Yii::t('user', "Все"),
+                self::ROLE_GUEST => Yii::t('user', static::$rolesTitles[self::ROLE_GUEST]),
+                self::ROLE_USER  => Yii::t('user', static::$rolesTitles[self::ROLE_USER]),
+                self::ROLE_ADMIN => Yii::t('user', static::$rolesTitles[self::ROLE_ADMIN]),
+            ];
+
+        } else {
+            return [
+                self::ROLE_GUEST => Yii::t('user', static::$rolesTitles[self::ROLE_GUEST]),
+                self::ROLE_USER  => Yii::t('user', static::$rolesTitles[self::ROLE_USER]),
+                self::ROLE_ADMIN => Yii::t('user', static::$rolesTitles[self::ROLE_ADMIN]),
+            ];
+        }
+    }
+
+    /**
+     * @param $roles
+     * @return string
+     */
+    public static function getRoleTitle($roles)
+    {
+        if (array_key_exists($roles, static::$rolesTitles)) {
+            return self::$rolesTitles[$roles];
+        } else {
+            return '';
+        }
+    }
+
+    /**
+     * @param $roles
+     * @return string
+     */
+    public static function getStatusTitle($status)
+    {
+        if (array_key_exists($status, static::$statusTitles)) {
+            return self::$statusTitles[$status];
+        } else {
+            return '';
+        }
+    }
+
+    public static function getAviableStatus($all = false)
+    {
+        if ($all) {
+            return [
+                null => Yii::t('user', "Все"),
+                self::STATUS_INACTIVE => Yii::t('user', static::$statusTitles[self::STATUS_INACTIVE]),
+                self::STATUS_ACTIVE   => Yii::t('user', static::$statusTitles[self::STATUS_ACTIVE]),
+                self::STATUS_DELETED  => Yii::t('user', static::$statusTitles[self::STATUS_DELETED]),
+            ];
+        } else {
+            return [
+                self::STATUS_INACTIVE => Yii::t('user', static::$statusTitles[self::STATUS_INACTIVE]),
+                self::STATUS_ACTIVE   => Yii::t('user', static::$statusTitles[self::STATUS_ACTIVE]),
+                self::STATUS_DELETED  => Yii::t('user', static::$statusTitles[self::STATUS_DELETED]),
+            ];
+        }
+    }
+
 }

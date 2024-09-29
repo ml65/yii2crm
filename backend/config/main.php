@@ -46,6 +46,19 @@ return [
             'rules' => [
             ],
         ],
+        'i18n' => [
+            'translations' => [
+                'user' => [
+                    'class' => 'yii\i18n\PhpMessageSource',
+                    'basePath' => '@backend/messages',
+                    //'sourceLanguage' => 'en-US',
+                    'fileMap' => [
+                        'user'       => 'user.php',
+                    ],
+                ],
+                ''
+            ],
+        ],
     ],
     'params' => $params,
 ];
