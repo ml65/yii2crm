@@ -19,6 +19,7 @@ use yii\web\IdentityInterface;
  * @property string $email
  * @property string $auth_key
  * @property integer $status
+ * @property integer $role
  * @property integer $created_at
  * @property integer $updated_at
  * @property string $password write-only password
@@ -30,6 +31,7 @@ class User extends ActiveRecord implements IdentityInterface
     const STATUS_ACTIVE = 10;
     const ROLE_GUEST = 0;
     const ROLE_ADMIN = 1024;
+    const ROLE_MANAGER = 512;
     const ROLE_USER = 1;
 
     protected static $statusTitles = [
@@ -38,9 +40,10 @@ class User extends ActiveRecord implements IdentityInterface
         self::STATUS_ACTIVE   => 'Активирован'
     ];
     protected static $rolesTitles = [
-        self::ROLE_GUEST => 'Гость',
-        self::ROLE_USER  => 'Пользователь',
-        self::ROLE_ADMIN => 'Админ'
+        self::ROLE_GUEST    => 'Гость',
+        self::ROLE_USER     => 'Пользователь',
+        self::ROLE_MANAGER  => 'Менеджер',
+        self::ROLE_ADMIN    => 'Админ'
     ];
 
     /**
@@ -234,16 +237,18 @@ class User extends ActiveRecord implements IdentityInterface
         if ($all) {
             return [
                 null => Yii::t('user', "Все"),
-                self::ROLE_GUEST => Yii::t('user', static::$rolesTitles[self::ROLE_GUEST]),
-                self::ROLE_USER  => Yii::t('user', static::$rolesTitles[self::ROLE_USER]),
-                self::ROLE_ADMIN => Yii::t('user', static::$rolesTitles[self::ROLE_ADMIN]),
+                self::ROLE_GUEST   => Yii::t('user', static::$rolesTitles[self::ROLE_GUEST]),
+                self::ROLE_USER    => Yii::t('user', static::$rolesTitles[self::ROLE_USER]),
+                self::ROLE_MANAGER => Yii::t('user', static::$rolesTitles[self::ROLE_MANAGER]),
+                self::ROLE_ADMIN   => Yii::t('user', static::$rolesTitles[self::ROLE_ADMIN]),
             ];
 
         } else {
             return [
-                self::ROLE_GUEST => Yii::t('user', static::$rolesTitles[self::ROLE_GUEST]),
-                self::ROLE_USER  => Yii::t('user', static::$rolesTitles[self::ROLE_USER]),
-                self::ROLE_ADMIN => Yii::t('user', static::$rolesTitles[self::ROLE_ADMIN]),
+                self::ROLE_GUEST   => Yii::t('user', static::$rolesTitles[self::ROLE_GUEST]),
+                self::ROLE_USER    => Yii::t('user', static::$rolesTitles[self::ROLE_USER]),
+                self::ROLE_MANAGER => Yii::t('user', static::$rolesTitles[self::ROLE_MANAGER]),
+                self::ROLE_ADMIN   => Yii::t('user', static::$rolesTitles[self::ROLE_ADMIN]),
             ];
         }
     }
@@ -290,6 +295,12 @@ class User extends ActiveRecord implements IdentityInterface
                 self::STATUS_DELETED  => Yii::t('user', static::$statusTitles[self::STATUS_DELETED]),
             ];
         }
+    }
+
+    public function isAdmin()
+    {
+        $adminrole = $this->role & User::ROLE_ADMIN;
+        return $adminrole == User::ROLE_ADMIN;
     }
 
 }
