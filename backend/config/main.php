@@ -14,7 +14,11 @@ return [
     'modules' => [
         'user' => [
             'class' => 'backend\modules\user\Module',
-        ],    ],
+        ],
+        'bid' => [
+            'class' => 'backend\modules\bid\Module',
+        ],
+    ],
     'components' => [
         'request' => [
             'csrfParam' => '_csrf-backend',
@@ -56,6 +60,15 @@ return [
                         'user'       => 'user.php',
                     ],
                 ],
+                'bid' => [
+                    'class' => 'yii\i18n\PhpMessageSource',
+                    'basePath' => '@backend/messages',
+                    //'sourceLanguage' => 'en-US',
+                    'fileMap' => [
+                        'bid'       => 'bid.php',
+                    ],
+                ],
+
                 ''
             ],
         ],
