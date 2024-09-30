@@ -18,7 +18,7 @@ class BidSearch extends Bid
     {
         return [
             [['id', 'status', 'created_at', 'updated_at'], 'integer'],
-            [['username', 'title', 'product_name', 'phone', 'comment'], 'safe'],
+            [['username', 'title', 'product_id', 'phone', 'comment'], 'safe'],
             [['price'], 'number'],
         ];
     }
@@ -68,7 +68,7 @@ class BidSearch extends Bid
 
         $query->andFilterWhere(['like', 'username', $this->username])
             ->andFilterWhere(['like', 'title', $this->title])
-            ->andFilterWhere(['like', 'product_name', $this->product_name])
+            ->andFilterWhere(['=', 'product_id', $this->product_id])
             ->andFilterWhere(['like', 'phone', $this->phone])
             ->andFilterWhere(['like', 'comment', $this->comment]);
 

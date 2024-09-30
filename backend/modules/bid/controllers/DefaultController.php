@@ -4,6 +4,8 @@ namespace backend\modules\bid\controllers;
 
 use common\models\Bid;
 use common\models\search\BidSearch;
+use common\models\User;
+use Yii;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -41,9 +43,28 @@ class DefaultController extends Controller
         $searchModel = new BidSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
 
+        /** @var $user User */
+        $user = yii::$app->user->identity;
+
+        if ($user->isAdmin()) {
+            if ($this->request->isPost) {
+                $data = $this->request->post('Bid');
+                $model = $this->findModel($data['id']);
+                if (isset($data['status'])) {
+                    $model->status = $data['status'];
+                }
+                if ($model->validate()) {
+                    $model->save();
+                } else {
+                    //TODO! отработка некорректных данных на входе index.php
+                }
+            }
+        }
+
         return $this->render('index', [
-            'searchModel' => $searchModel,
+            'searchModel'  => $searchModel,
             'dataProvider' => $dataProvider,
+            'user'         => $user,
         ]);
     }
 

@@ -50,10 +50,8 @@ class DefaultController extends Controller
 
         /* @var $user User */
         $user = yii::$app->user->identity;
+
         if ($user->isAdmin()) {
-            //if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
-            //    return $this->redirect(['view', 'id' => $model->id]);
-            //}
             if ($this->request->isPost) {
                 $data = $this->request->post('User');
                 $model = $this->findModel($data['id']);
@@ -68,9 +66,7 @@ class DefaultController extends Controller
                 } else {
                     //TODO! отработка некорректных данных на входе index.php
                 }
-
             }
-
         }
 
         return $this->render('index', [

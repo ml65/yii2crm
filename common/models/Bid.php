@@ -10,7 +10,7 @@ use Yii;
  * @property int $id
  * @property string $username
  * @property string $title
- * @property string $product_name
+ * @property int $product_id
  * @property string|null $phone
  * @property string|null $comment
  * @property float $price
@@ -58,8 +58,8 @@ class Bid extends \yii\db\ActiveRecord
             [['username', 'title', 'product_id', 'price', 'created_at', 'updated_at'], 'required'],
             [['comment'], 'string'],
             [['price'], 'number'],
-            [['status', 'created_at', 'updated_at'], 'integer'],
-            [['username', 'title', 'product_name'], 'string', 'max' => 255],
+            [['status', 'product_id', 'created_at', 'updated_at'], 'integer'],
+            [['username', 'title'], 'string', 'max' => 255],
             [['phone'], 'string', 'max' => 11],
         ];
     }
@@ -82,4 +82,52 @@ class Bid extends \yii\db\ActiveRecord
             'updated_at' => Yii::t('bid', 'Обновлено'),
         ];
     }
+
+    public function getProductName($product_id)
+    {
+        if (array_key_exists($product_id, self::$productsBD)) {
+            return self::$productsBD[$product_id];
+        } else {
+            return Yii::t('bid',"Товар не найден");
+        }
+    }
+
+    /**
+     * @param $all
+     * @return array
+     */
+    public static function getAviableStatus($all = false)
+    {
+        if ($all) {
+            return [
+                null => Yii::t('user', "Все"),
+                self::STATUS_NEW        => Yii::t('user', static::$statusTitles[self::STATUS_NEW]),
+                self::STATUS_ACCEPTED   => Yii::t('user', static::$statusTitles[self::STATUS_ACCEPTED]),
+                self::STATUS_REJECTED   => Yii::t('user', static::$statusTitles[self::STATUS_REJECTED]),
+                self::STATUS_DEFECT     => Yii::t('user', static::$statusTitles[self::STATUS_DEFECT]),
+            ];
+        } else {
+            return [
+                self::STATUS_NEW        => Yii::t('user', static::$statusTitles[self::STATUS_NEW]),
+                self::STATUS_ACCEPTED   => Yii::t('user', static::$statusTitles[self::STATUS_ACCEPTED]),
+                self::STATUS_REJECTED   => Yii::t('user', static::$statusTitles[self::STATUS_REJECTED]),
+                self::STATUS_DEFECT     => Yii::t('user', static::$statusTitles[self::STATUS_DEFECT]),
+            ];
+        }
+
+    }
+
+    /**
+     * @param $status
+     * @return string
+     */
+    public static function getStatusTitle($status)
+    {
+        if (array_key_exists($status, static::$statusTitles)) {
+            return self::$statusTitles[$status];
+        } else {
+            return '';
+        }
+    }
+
 }
