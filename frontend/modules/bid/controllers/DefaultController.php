@@ -2,6 +2,8 @@
 
 namespace frontend\modules\bid\controllers;
 
+use common\models\Bid;
+use Yii;
 use yii\web\Controller;
 
 /**
@@ -9,12 +11,38 @@ use yii\web\Controller;
  */
 class DefaultController extends Controller
 {
-    /**
-     * Renders the index view for the module
-     * @return string
-     */
+
+//    public function actionAdd()
     public function actionIndex()
     {
-        return $this->render('index');
+        $message = '';
+        $class = 'success';
+        $model = new Bid();
+        if ($model->load(Yii::$app->request->post())) {
+            $a = Yii::$app->request->post();
+            if ($model->load(Yii::$app->request->post())) {
+                if ($model->validate()) {
+                    if ($model->save()) {
+                        $message = "Создана заявка #".$model->id;
+                        $model   = new Bid();
+                    } else {
+                        $message = "ERROR! Заявка не создана!";
+                        $class   = 'danger';
+                    }
+                } else {
+                    echo "<pre>";
+                    var_dump($model->errors); exit;
+                    $message = "ERROR! Заявка не создана!";
+                    $class   = 'danger';
+                }
+            }
+
+        }
+
+        return $this->render('bid', [
+            'model'   => $model,
+            'message' => $message,
+            'class'   => $class
+        ]);
     }
 }

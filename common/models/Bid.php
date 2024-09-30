@@ -35,9 +35,10 @@ class Bid extends \yii\db\ActiveRecord
     /* эмуляция работы с БД в модели в поле записываем id продукта*/
 
     public static $productsBD = [
-        0 => 'яблоки',
-        1 => 'апельсины',
-        2 =>'мандарины'
+        0 => 'Выберите продукт',
+        1 => 'яблоки',
+        2 => 'апельсины',
+        3 =>'мандарины'
     ];
 
 
@@ -55,10 +56,10 @@ class Bid extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['username', 'title', 'product_id', 'price', 'created_at', 'updated_at'], 'required'],
+            [['username', 'title', 'product_id', 'price'], 'required'],
             [['comment'], 'string'],
             [['price'], 'number'],
-            [['status', 'product_id', 'created_at', 'updated_at'], 'integer'],
+            [['status', 'product_id'], 'integer'],
             [['username', 'title'], 'string', 'max' => 255],
             [['phone'], 'string', 'max' => 11],
         ];
@@ -83,8 +84,11 @@ class Bid extends \yii\db\ActiveRecord
         ];
     }
 
-    public function getProductName($product_id)
+    public function getProductName($product_id = null)
     {
+        if (!$product_id) {
+            $product_id = $this->product_id;
+        }
         if (array_key_exists($product_id, self::$productsBD)) {
             return self::$productsBD[$product_id];
         } else {
@@ -121,13 +125,21 @@ class Bid extends \yii\db\ActiveRecord
      * @param $status
      * @return string
      */
-    public static function getStatusTitle($status)
+    public function getStatusTitle($status = null)
     {
+        if (!$status) {
+            $status = $this->status;
+        }
         if (array_key_exists($status, static::$statusTitles)) {
             return self::$statusTitles[$status];
         } else {
             return '';
         }
+    }
+
+    public static function getAviableProducts()
+    {
+        return self::$productsBD;
     }
 
 }

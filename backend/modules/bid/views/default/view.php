@@ -32,11 +32,17 @@ $this->params['breadcrumbs'][] = $this->title;
             'id',
             'username',
             'title',
-            'product_name',
+            [
+                'label' => Yii::t('bid', 'Продукт'),
+                'value' => $model->getProductName()
+            ],
             'phone',
             'comment:ntext',
             'price',
-            'status',
+            [
+                'label' => Yii::t('bid', 'Статус'),
+                'value' => $model->getStatusTitle(),
+            ],
             'created_at',
             'updated_at',
         ],

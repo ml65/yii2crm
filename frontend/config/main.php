@@ -47,6 +47,20 @@ return [
             'rules' => [
             ],
         ],
+        'i18n' => [
+            'translations' => [
+                'bid' => [
+                    'class' => 'yii\i18n\PhpMessageSource',
+                    'basePath' => '@common/messages',
+                    //'sourceLanguage' => 'en-US',
+                    'fileMap' => [
+                        'bid'       => 'bid.php',
+                    ],
+                ],
+
+                ''
+            ],
+        ],
     ],
     'params' => $params,
 ];

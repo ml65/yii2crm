@@ -114,10 +114,17 @@ class DefaultController extends Controller
     {
         $model = $this->findModel($id);
 
-        if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        if ($this->request->isPost) {
+            if ($model->load($this->request->post()) && $model->save()) {
+                return $this->redirect(['view', 'id' => $model->id]);
+            } else {
+                $a = $model->errors;
+                echo "<pre>";
+                var_dump($a); exit;
+            }
         }
 
+        /** @var Bid $model */
         return $this->render('update', [
             'model' => $model,
         ]);

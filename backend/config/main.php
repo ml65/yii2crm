@@ -62,7 +62,7 @@ return [
                 ],
                 'bid' => [
                     'class' => 'yii\i18n\PhpMessageSource',
-                    'basePath' => '@backend/messages',
+                    'basePath' => '@common/messages',
                     //'sourceLanguage' => 'en-US',
                     'fileMap' => [
                         'bid'       => 'bid.php',
