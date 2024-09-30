@@ -1,6 +1,6 @@
 <?php
 
-namespace frontend\module\bid;
+namespace frontend\modules\bid;
 
 /**
  * bid module definition class
@@ -10,7 +10,7 @@ class Module extends \yii\base\Module
     /**
      * {@inheritdoc}
      */
-    public $controllerNamespace = 'frontend\module\bid\controllers';
+    public $controllerNamespace = 'frontend\modules\bid\controllers';
 
     /**
      * {@inheritdoc}

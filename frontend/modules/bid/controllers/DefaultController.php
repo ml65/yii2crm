@@ -1,6 +1,6 @@
 <?php
 
-namespace frontend\module\bid\controllers;
+namespace frontend\modules\bid\controllers;
 
 use yii\web\Controller;
 
