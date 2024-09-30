@@ -26,8 +26,8 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'price')->textInput() ?>
 
-    <?= $form->field($model, 'status')->textInput() ?>
-
+    <?= $form->field($model, 'status')->dropDownList(Bid::getAviableStatus()) ?>
+    <br>
     <div class="form-group">
         <?= Html::submitButton(Yii::t('bid', 'Save'), ['class' => 'btn btn-success']) ?>
     </div>

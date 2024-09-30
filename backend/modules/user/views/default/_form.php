@@ -24,6 +24,7 @@ use yii\widgets\ActiveForm;
     <div class='col-md-3'>
         <?= $form->field($model, 'role')->dropDownList( User::getAviableRoles()) ?>
     </div>
+    <br>
     <div class="form-group">
         <?= Html::submitButton('Save', ['class' => 'btn btn-success']) ?>
     </div>

@@ -6,6 +6,8 @@ use common\models\Bid;
 use common\models\search\BidSearch;
 use common\models\User;
 use Yii;
+use yii\behaviors\TimestampBehavior;
+use yii\db\ActiveRecord;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -115,7 +117,10 @@ class DefaultController extends Controller
         $model = $this->findModel($id);
 
         if ($this->request->isPost) {
-            if ($model->load($this->request->post()) && $model->save()) {
+            if ($model->load($this->request->post())) {
+                Yii::info("Update ");
+                $model->updated_at = date('Y-m-d H:i:s');
+                $model->save();
                 return $this->redirect(['view', 'id' => $model->id]);
             } else {
                 $a = $model->errors;
