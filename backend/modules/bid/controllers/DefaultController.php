@@ -118,8 +118,6 @@ class DefaultController extends Controller
 
         if ($this->request->isPost) {
             if ($model->load($this->request->post())) {
-                Yii::info("Update ");
-                $model->updated_at = date('Y-m-d H:i:s');
                 $model->save();
                 return $this->redirect(['view', 'id' => $model->id]);
             } else {

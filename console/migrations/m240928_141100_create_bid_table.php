@@ -20,8 +20,8 @@ class m240928_141100_create_bid_table extends Migration
             'comment' => $this->text(),
             'price' => $this->float()->notNull(),
             'status' => $this->smallInteger()->notNull()->defaultValue(0),
-            'created_at' => $this->integer()->notNull(),
-            'updated_at' => $this->integer()->notNull(),
+            'created_at' => $this->timestamp()->defaultExpression('CURRENT_TIMESTAMP'),
+            'updated_at' => $this->timestamp()->defaultValue(null)->append('ON UPDATE CURRENT_TIMESTAMP'),
         ], $tableOptions);
     }
 

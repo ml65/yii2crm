@@ -61,7 +61,11 @@ class Bid extends \yii\db\ActiveRecord
             [['price'], 'number'],
             [['status', 'product_id'], 'integer'],
             [['username', 'title'], 'string', 'max' => 255],
-            [['phone'], 'string', 'max' => 11],
+            [['phone'], 'filter', 'filter' => function($value) {
+                $value = preg_replace('/[^0-9]/', '', $value);
+                // можно добавить номализацию номера по шаблону 7XXXXXXXXXX для последующей автоматической обработки
+                return $value;
+            }],
         ];
     }
 
