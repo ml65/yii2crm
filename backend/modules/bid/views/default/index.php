@@ -21,7 +21,8 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Html::a(Yii::t('bid', 'Create Bid'), ['create'], ['class' => 'btn btn-success']) ?>
+        <?= Html::a(Yii::t('bid', 'Создать заявку'), ['create'], ['class' => 'btn btn-success']) ?>
+        <?= Html::a(Yii::t('bid', 'Экспортировать список'), ['export'], ['class' => 'btn btn-info']) ?>
     </p>
 
     <?php Pjax::begin(); ?>

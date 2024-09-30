@@ -162,4 +162,33 @@ class DefaultController extends Controller
 
         throw new NotFoundHttpException(Yii::t('bid', 'The requested page does not exist.'));
     }
+
+    public function actionExport()
+    {
+        $data = "Номер заявки;Имя клиента;Наименование заявки;Наименование товара;Телефон;Время создания заявки;Статус;Комментарий;Цена\r\n";
+        $model = Bid::find()->indexBy('id')->all();
+        /** @var  $row Bid */
+        foreach ($model as $row) {
+            $data .= $row->id.
+                ';' . $row->username .
+                ';' . $row->title .
+                ';' . $row->getProductName() .
+                ';' . $row->phone .
+                ';' . $row->created_at .
+                ';' . $row->getStatusTitle() .
+                ';' . $row->comment .
+                ';' . $row->price .
+                "\r\n";
+        }
+        header('Content-Description: File Transfer');
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="export_'.date('Y-m-d').'.csv"');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . strlen($data) );
+        echo $data;
+        //Yii::app()->end();
+        exit;
+    }
 }
