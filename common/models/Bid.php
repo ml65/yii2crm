@@ -2,6 +2,10 @@
 
 namespace common\models;
 
+use common\interfaces\ProductInterface;
+use common\interfaces\StatusInterface;
+use common\services\ProductService;
+use common\services\StatusService;
 use Yii;
 
 /**
@@ -20,27 +24,8 @@ use Yii;
  */
 class Bid extends \yii\db\ActiveRecord
 {
-    const STATUS_NEW = 0;
-    const STATUS_ACCEPTED = 1;
-    const STATUS_REJECTED = 2;
-    const STATUS_DEFECT = 4;
-
-    protected static $statusTitles = [
-        self::STATUS_NEW        => 'Новая',
-        self::STATUS_ACCEPTED   => 'Принята',
-        self::STATUS_REJECTED   => 'Отказана',
-        self::STATUS_DEFECT     => 'Брак'
-    ];
-
-    /* эмуляция работы с БД в модели в поле записываем id продукта*/
-
-    public static $productsBD = [
-        0 => 'Выберите продукт',
-        1 => 'яблоки',
-        2 => 'апельсины',
-        3 =>'мандарины'
-    ];
-
+    private ?ProductService $productService = null;
+    private ?StatusService $statusService = null;
 
     /**
      * {@inheritdoc}
@@ -63,9 +48,15 @@ class Bid extends \yii\db\ActiveRecord
             [['username', 'title'], 'string', 'max' => 255],
             [['phone'], 'filter', 'filter' => function($value) {
                 $value = preg_replace('/[^0-9]/', '', $value);
-                // можно добавить номализацию номера по шаблону 7XXXXXXXXXX для последующей автоматической обработки
                 return $value;
             }],
+            ['status', 'default', 'value' => StatusService::STATUS_NEW],
+            ['status', 'in', 'range' => [
+                StatusService::STATUS_NEW,
+                StatusService::STATUS_ACCEPTED,
+                StatusService::STATUS_REJECTED,
+                StatusService::STATUS_DEFECT
+            ]],
         ];
     }
 
@@ -88,62 +79,45 @@ class Bid extends \yii\db\ActiveRecord
         ];
     }
 
-    public function getProductName($product_id = null)
+    public function getProductName(int $productId = null): string
     {
-        if (!$product_id) {
-            $product_id = $this->product_id;
+        if ($productId === null) {
+            $productId = $this->product_id;
         }
-        if (array_key_exists($product_id, self::$productsBD)) {
-            return self::$productsBD[$product_id];
-        } else {
-            return Yii::t('bid',"Товар не найден");
-        }
+        return $this->getProductService()->getProductName($productId);
     }
 
-    /**
-     * @param $all
-     * @return array
-     */
-    public static function getAviableStatus($all = false)
+    public static function getAvailableStatuses(bool $all = false): array
     {
-        if ($all) {
-            return [
-                null => Yii::t('user', "Все"),
-                self::STATUS_NEW        => Yii::t('user', static::$statusTitles[self::STATUS_NEW]),
-                self::STATUS_ACCEPTED   => Yii::t('user', static::$statusTitles[self::STATUS_ACCEPTED]),
-                self::STATUS_REJECTED   => Yii::t('user', static::$statusTitles[self::STATUS_REJECTED]),
-                self::STATUS_DEFECT     => Yii::t('user', static::$statusTitles[self::STATUS_DEFECT]),
-            ];
-        } else {
-            return [
-                self::STATUS_NEW        => Yii::t('user', static::$statusTitles[self::STATUS_NEW]),
-                self::STATUS_ACCEPTED   => Yii::t('user', static::$statusTitles[self::STATUS_ACCEPTED]),
-                self::STATUS_REJECTED   => Yii::t('user', static::$statusTitles[self::STATUS_REJECTED]),
-                self::STATUS_DEFECT     => Yii::t('user', static::$statusTitles[self::STATUS_DEFECT]),
-            ];
-        }
-
+        return (new StatusService())->getAvailableStatuses($all);
     }
 
-    /**
-     * @param $status
-     * @return string
-     */
-    public function getStatusTitle($status = null)
+    public function getStatusTitle(int $status = null): string
     {
-        if (!$status) {
+        if ($status === null) {
             $status = $this->status;
         }
-        if (array_key_exists($status, static::$statusTitles)) {
-            return self::$statusTitles[$status];
-        } else {
-            return '';
-        }
+        return $this->getStatusService()->getStatusTitle($status);
     }
 
-    public static function getAviableProducts()
+    public static function getAvailableProducts(): array
     {
-        return self::$productsBD;
+        return (new ProductService())->getAvailableProducts();
     }
 
+    private function getProductService(): ProductInterface
+    {
+        if ($this->productService === null) {
+            $this->productService = new ProductService();
+        }
+        return $this->productService;
+    }
+
+    private function getStatusService(): StatusInterface
+    {
+        if ($this->statusService === null) {
+            $this->statusService = new StatusService();
+        }
+        return $this->statusService;
+    }
 }

@@ -2,6 +2,12 @@
 
 namespace common\models;
 
+use common\interfaces\AuthInterface;
+use common\interfaces\PasswordInterface;
+use common\interfaces\RoleInterface;
+use common\services\AuthService;
+use common\services\PasswordService;
+use common\services\RoleService;
 use Yii;
 use yii\base\NotSupportedException;
 use yii\behaviors\TimestampBehavior;
@@ -29,22 +35,16 @@ class User extends ActiveRecord implements IdentityInterface
     const STATUS_DELETED = 0;
     const STATUS_INACTIVE = 9;
     const STATUS_ACTIVE = 10;
-    const ROLE_GUEST = 0;
-    const ROLE_ADMIN = 1024;
-    const ROLE_MANAGER = 512;
-    const ROLE_USER = 1;
 
     protected static $statusTitles = [
         self::STATUS_DELETED  => 'Удален',
         self::STATUS_INACTIVE => 'Не активирован',
         self::STATUS_ACTIVE   => 'Активирован'
     ];
-    protected static $rolesTitles = [
-        self::ROLE_GUEST    => 'Гость',
-        self::ROLE_USER     => 'Пользователь',
-        self::ROLE_MANAGER  => 'Менеджер',
-        self::ROLE_ADMIN    => 'Админ'
-    ];
+
+    private ?AuthService $authService = null;
+    private ?PasswordService $passwordService = null;
+    private ?RoleService $roleService = null;
 
     /**
      * {@inheritdoc}
@@ -72,8 +72,8 @@ class User extends ActiveRecord implements IdentityInterface
         return [
             ['status', 'default', 'value' => self::STATUS_INACTIVE],
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_DELETED]],
-            ['role', 'default', 'value' => self::ROLE_USER],
-            ['role', 'in', 'range' => [self::ROLE_ADMIN, self::ROLE_USER, self::ROLE_GUEST]], // пока не смешиваем роли
+            ['role', 'default', 'value' => RoleService::ROLE_USER],
+            ['role', 'in', 'range' => [RoleService::ROLE_ADMIN, RoleService::ROLE_USER, RoleService::ROLE_GUEST]],
         ];
     }
 
@@ -154,13 +154,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public static function isPasswordResetTokenValid($token)
     {
-        if (empty($token)) {
-            return false;
-        }
-
-        $timestamp = (int) substr($token, strrpos($token, '_') + 1);
-        $expire = Yii::$app->params['user.passwordResetTokenExpire'];
-        return $timestamp + $expire >= time();
+        return (new PasswordService(''))->isPasswordResetTokenValid($token);
     }
 
     /**
@@ -184,7 +178,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public function validateAuthKey($authKey)
     {
-        return $this->getAuthKey() === $authKey;
+        return $this->getAuthService()->validateAuthKey($authKey);
     }
 
     /**
@@ -195,7 +189,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public function validatePassword($password)
     {
-        return Yii::$app->security->validatePassword($password, $this->password_hash);
+        return $this->getAuthService()->validatePassword($password);
     }
 
     /**
@@ -205,7 +199,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public function setPassword($password)
     {
-        $this->password_hash = Yii::$app->security->generatePasswordHash($password);
+        $this->getPasswordService()->setPassword($password);
     }
 
     /**
@@ -213,7 +207,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public function generateAuthKey()
     {
-        $this->auth_key = Yii::$app->security->generateRandomString();
+        $this->auth_key = $this->getAuthService()->generateAuthKey();
     }
 
     /**
@@ -221,7 +215,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public function generatePasswordResetToken()
     {
-        $this->password_reset_token = Yii::$app->security->generateRandomString() . '_' . time();
+        $this->password_reset_token = $this->getPasswordService()->generatePasswordResetToken();
     }
 
     /**
@@ -237,7 +231,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public function removePasswordResetToken()
     {
-        $this->password_reset_token = null;
+        $this->getPasswordService()->removePasswordResetToken();
     }
 
     /**
@@ -245,73 +239,54 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public static function getAviableRoles($all = false)
     {
-        if ($all) {
-            return [
-                null => Yii::t('user', "Все"),
-                self::ROLE_GUEST   => Yii::t('user', static::$rolesTitles[self::ROLE_GUEST]),
-                self::ROLE_USER    => Yii::t('user', static::$rolesTitles[self::ROLE_USER]),
-                self::ROLE_MANAGER => Yii::t('user', static::$rolesTitles[self::ROLE_MANAGER]),
-                self::ROLE_ADMIN   => Yii::t('user', static::$rolesTitles[self::ROLE_ADMIN]),
-            ];
-
-        } else {
-            return [
-                self::ROLE_GUEST   => Yii::t('user', static::$rolesTitles[self::ROLE_GUEST]),
-                self::ROLE_USER    => Yii::t('user', static::$rolesTitles[self::ROLE_USER]),
-                self::ROLE_MANAGER => Yii::t('user', static::$rolesTitles[self::ROLE_MANAGER]),
-                self::ROLE_ADMIN   => Yii::t('user', static::$rolesTitles[self::ROLE_ADMIN]),
-            ];
-        }
+        return (new RoleService(0))->getAvailableRoles($all);
     }
 
     /**
-     * @param $roles
-     * @return string
+     * @return bool
      */
-    public static function getRoleTitle($roles)
-    {
-        if (array_key_exists($roles, static::$rolesTitles)) {
-            return self::$rolesTitles[$roles];
-        } else {
-            return '';
-        }
-    }
-
-    /**
-     * @param $roles
-     * @return string
-     */
-    public static function getStatusTitle($status)
-    {
-        if (array_key_exists($status, static::$statusTitles)) {
-            return self::$statusTitles[$status];
-        } else {
-            return '';
-        }
-    }
-
-    public static function getAviableStatus($all = false)
-    {
-        if ($all) {
-            return [
-                null => Yii::t('user', "Все"),
-                self::STATUS_INACTIVE => Yii::t('user', static::$statusTitles[self::STATUS_INACTIVE]),
-                self::STATUS_ACTIVE   => Yii::t('user', static::$statusTitles[self::STATUS_ACTIVE]),
-                self::STATUS_DELETED  => Yii::t('user', static::$statusTitles[self::STATUS_DELETED]),
-            ];
-        } else {
-            return [
-                self::STATUS_INACTIVE => Yii::t('user', static::$statusTitles[self::STATUS_INACTIVE]),
-                self::STATUS_ACTIVE   => Yii::t('user', static::$statusTitles[self::STATUS_ACTIVE]),
-                self::STATUS_DELETED  => Yii::t('user', static::$statusTitles[self::STATUS_DELETED]),
-            ];
-        }
-    }
-
     public function isAdmin()
     {
-        $adminrole = $this->role & User::ROLE_ADMIN;
-        return $adminrole == User::ROLE_ADMIN;
+        return $this->getRoleService()->isAdmin();
     }
 
+    /**
+     * @return bool
+     */
+    public function isManager()
+    {
+        return $this->getRoleService()->isManager();
+    }
+
+    /**
+     * @return bool
+     */
+    public function isUser()
+    {
+        return $this->getRoleService()->isUser();
+    }
+
+    private function getAuthService(): AuthInterface
+    {
+        if ($this->authService === null) {
+            $this->authService = new AuthService($this->password_hash, $this->auth_key);
+        }
+        return $this->authService;
+    }
+
+    private function getPasswordService(): PasswordInterface
+    {
+        if ($this->passwordService === null) {
+            $this->passwordService = new PasswordService($this->password_hash, $this->password_reset_token);
+        }
+        return $this->passwordService;
+    }
+
+    private function getRoleService(): RoleInterface
+    {
+        if ($this->roleService === null) {
+            $this->roleService = new RoleService($this->role);
+        }
+        return $this->roleService;
+    }
 }
